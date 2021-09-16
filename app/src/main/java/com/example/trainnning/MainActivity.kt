@@ -4,18 +4,15 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.AdapterView
-import androidx.room.CoroutinesRoom
 import androidx.room.Room
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.row_view.*
-import com.example.trainnning.CustomAdapter
-import com.example.trainnning.Data
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
-import kotlin.coroutines.coroutineContext
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var db: AppDatabase
@@ -25,75 +22,66 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // カスタムアダプターに渡すData
-        val dataList = arrayListOf<Data>()
+        val data = arrayListOf<Data>()
         for (i in 0..100){
-            dataList.add(Data().apply {
-                when{
-                    i %3 == 0 -> {
+            data.add(Data().apply {
+                when(i % 2){
+                    0 -> {
                         icon = "strawberry"
                         title = "ストロベリーアイス"
-                        text = "¥100 おすすめ"
+                        text = "おすすめ"
                     }
-                    i %2 == 0 -> {
+                    1 -> {
                         icon = "lemon"
                         title = "レモンアイス"
-                        text = "¥200 爽やか"
+                        text = "爽やか"
                     }
                     else -> {
                         icon = "choco"
                         title = "チョコアイス"
-                        text = "¥300 濃厚チョコ"
+                        text = "甘いよ"
                     }
                 }
             })
         }
-
         // Roomで作ったDBを初期化する
         db = Room.databaseBuilder(this, AppDatabase::class.java, "iceCream_database").build()
         dao = db.iceCreamDao()
 
-        // アダプターをセット
-        val adapter = CustomAdapter(this, dataList)
-        list_view.adapter = adapter
+        // DB処理をDispatchersIOで実行する
+        GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                // insert
+                val ice = IceCream(icon = "strawberry",title = "ストロベリーアイス",text = "おすすめ")
+                dao.insert(ice)
+                // select
+                val iceList = arrayListOf<Data>()
+                iceList.add(Data().apply{dao.selectAll()})
+                // delete
+                dao.deleteAll()
 
+                withContext(Dispatchers.Main){
+                    // アダプターをセット
+                    val adapter = CustomAdapter(this@MainActivity, iceList)
+                    list_view.adapter = adapter
+                }
+            }
+        }
         // リストビューのクリックリスナー
         list_view.setOnItemClickListener { parent: AdapterView<*>, _, position, _ ->
             val iceCream = parent.getItemAtPosition(position) as Data
             val state = DataState(iceCream.icon, iceCream.title, iceCream.text)
 
-            // DB処理をコルーチンのDispatcherIOで実行する
-            GlobalScope.launch {
-                withContext(Dispatchers.IO) {
-                    when(state.icon){
-                        "strawberry" -> {
-                            val strawberryIce = IceCream(1, "strawberry", "ストロベリーアイス", "¥100 おすすめ")
-                            dao.insert(strawberryIce)
-                        }
-                        "lemon" -> {
-                            val lemonIce = IceCream(2, "lemon", "レモンアイス", "¥200 爽やか")
-                            dao.insert(lemonIce)
-                        }
-                        "choco" -> {
-                            val chocoIce = IceCream(3, "choco", "チョコアイス", "¥300 濃厚チョコ")
-                            dao.insert(chocoIce)
-                        }
-                    }
-                    val select = dao.selectAll()
-                    println(select)
-                }
-            }
-            // メインスレッドでIntent
-            val ice = CoroutinesRoom.toString()
             Intent(this,SubActivity::class.java).apply {
-                this.putExtra("ICE_CREAM", ice)
+                this.putExtra("ICE_CREAM", state)
                 startActivity(this)
             }
         }
     }
 }
 
-//    Log.v("TAG", "${iceCreamDao.selectAll().toString()}")
+// try{ DBの処理 } catch(e:ClassCastException){ println("キャスト失敗") }
+// DBは例外が起きやすいためtry catchが最適
 //      アダプターをセットする
 //        val adapter = CustomAdapter(this, dataList)
 //        list_view.adapter = adapter
@@ -106,3 +94,25 @@ class MainActivity : AppCompatActivity() {
 //                startActivity(this)
 //            }
 //        }
+//val data = arrayListOf<Data>()
+//                for (i in 0..100){
+//                    data.add(Data().apply {
+//                        when(i % 2){
+//                            0 -> {
+//                                icon = "strawberry"
+//                                title = "ストロベリーアイス"
+//                                text = "おすすめ"
+//                            }
+//                            1 -> {
+//                                icon = "lemon"
+//                                title = "レモンアイス"
+//                                text = "爽やか"
+//                            }
+//                            else -> {
+//                                icon = "choco"
+//                                title = "チョコアイス"
+//                                text = "甘いよ"
+//                            }
+//                        }
+//                    })
+//                }

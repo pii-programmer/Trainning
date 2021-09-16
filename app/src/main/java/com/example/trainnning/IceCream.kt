@@ -5,8 +5,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "iceCream_table")
 data class IceCream(
-    @PrimaryKey(autoGenerate = true) val id: Long,
-    val icon: String,
-    val title: String,
-    val text: String
+    @PrimaryKey(autoGenerate = true)
+    val id: Long?  = null,
+    val icon: String?,
+    val title: String?,
+    val text: String?
 )
+// 主キーidはautoGenerateになる。よってinsertの際、idを指定しないこと。

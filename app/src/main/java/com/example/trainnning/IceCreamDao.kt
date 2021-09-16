@@ -11,4 +11,7 @@ interface IceCreamDao {
 
     @Query("SELECT * FROM iceCream_table")
     fun selectAll():List<IceCream>
+
+    @Query("DELETE FROM iceCream_table")
+    fun deleteAll()
 }
