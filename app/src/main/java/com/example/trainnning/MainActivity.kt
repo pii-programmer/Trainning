@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         val data = arrayListOf<Data>()
         for (i in 0..100){
             data.add(Data().apply {
-                when(i % 2){
+                when(i % 3){
                     0 -> {
                         icon = "strawberry"
                         title = "ストロベリーアイス"
@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity() {
         // Roomで作ったDBを初期化する
         db = Room.databaseBuilder(this, AppDatabase::class.java, "iceCream_database").build()
         dao = db.iceCreamDao()
-
         // DB処理をDispatchersIOで実行する
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
@@ -59,11 +58,9 @@ class MainActivity : AppCompatActivity() {
                 iceList.add(Data().apply{dao.selectAll()})
                 // delete
                 dao.deleteAll()
-
                 withContext(Dispatchers.Main){
                     // アダプターをセット
-                    val adapter = CustomAdapter(this@MainActivity, iceList)
-                    list_view.adapter = adapter
+                    list_view.adapter = CustomAdapter(this@MainActivity, iceList)
                 }
             }
         }
@@ -83,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 // try{ DBの処理 } catch(e:ClassCastException){ println("キャスト失敗") }
 // DBは例外が起きやすいためtry catchが最適
 //      アダプターをセットする
-//        val adapter = CustomAdapter(this, dataList)
+//        val adapter = CustomAdapter(this, data)
 //        list_view.adapter = adapter
 //      Intent処理
 //      list_view.setOnItemClickListener { parent: AdapterView<*>, _, position, _ ->
@@ -94,25 +91,3 @@ class MainActivity : AppCompatActivity() {
 //                startActivity(this)
 //            }
 //        }
-//val data = arrayListOf<Data>()
-//                for (i in 0..100){
-//                    data.add(Data().apply {
-//                        when(i % 2){
-//                            0 -> {
-//                                icon = "strawberry"
-//                                title = "ストロベリーアイス"
-//                                text = "おすすめ"
-//                            }
-//                            1 -> {
-//                                icon = "lemon"
-//                                title = "レモンアイス"
-//                                text = "爽やか"
-//                            }
-//                            else -> {
-//                                icon = "choco"
-//                                title = "チョコアイス"
-//                                text = "甘いよ"
-//                            }
-//                        }
-//                    })
-//                }
