@@ -22,9 +22,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val data = arrayListOf<Data>()
+        val datas = arrayListOf<IceCream>()
         for (i in 0..100){
-            data.add(Data().apply {
+            datas.add(IceCream(icon = "",title = "",text = "").apply {
                 when(i % 3){
                     0 -> {
                         icon = "strawberry"
@@ -50,23 +50,33 @@ class MainActivity : AppCompatActivity() {
         // DB処理をDispatchersIOで実行する
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
-                // insert
-                val ice = IceCream(icon = "strawberry",title = "ストロベリーアイス",text = "おすすめ")
-                dao.insert(ice)
-                // select
-                val iceList = arrayListOf<Data>()
-                iceList.add(Data().apply{dao.selectAll()})
                 // delete
                 dao.deleteAll()
+                // insert
+                /** 遠藤コメント **/
+//                var test = mutableListOf<IceCream>()
+//                var test = datas.map{
+//                    IceCream(
+//                            title = it.title,
+//                            icon = it.icon,
+//                            text = it.text
+//                    )
+//                } as MutableList<IceCream>
+//                dao.inserAll()
+                /** 遠藤コメント  ここまで**/
+                dao.insert(datas)
+                // select
+                val iceList = dao.selectAll()
+
                 withContext(Dispatchers.Main){
                     // アダプターをセット
-                    list_view.adapter = CustomAdapter(this@MainActivity, iceList)
+                    list_view.adapter = CustomAdapter(this@MainActivity, iceList as ArrayList<IceCream>)
                 }
             }
         }
         // リストビューのクリックリスナー
         list_view.setOnItemClickListener { parent: AdapterView<*>, _, position, _ ->
-            val iceCream = parent.getItemAtPosition(position) as Data
+            val iceCream = parent.getItemAtPosition(position) as IceCream
             val state = DataState(iceCream.icon, iceCream.title, iceCream.text)
 
             Intent(this,SubActivity::class.java).apply {
@@ -76,18 +86,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
-// try{ DBの処理 } catch(e:ClassCastException){ println("キャスト失敗") }
-// DBは例外が起きやすいためtry catchが最適
-//      アダプターをセットする
-//        val adapter = CustomAdapter(this, data)
-//        list_view.adapter = adapter
-//      Intent処理
-//      list_view.setOnItemClickListener { parent: AdapterView<*>, _, position, _ ->
-//            val iceCream = parent.getItemAtPosition(position) as Data
-//            val state = DataState(iceCream.icon, iceCream.title, iceCream.text)
-//            Intent(this,SubActivity::class.java).apply{
-//                this.putExtra("ICE_CREAM", state)
-//                startActivity(this)
-//            }
-//        }

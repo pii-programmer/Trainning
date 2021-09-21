@@ -1,5 +1,6 @@
 package com.example.trainnning
 
+import android.widget.AdapterView
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
