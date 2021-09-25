@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import kotlinx.coroutines.CoroutineScope
 import java.util.*
 
 class CustomAdapter(context: Context, list: ArrayList<IceCream>) : ArrayAdapter<IceCream>(context,0,list){
