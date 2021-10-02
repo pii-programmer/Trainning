@@ -3,6 +3,7 @@ package com.example.trainnning
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.AdapterView
 import androidx.room.Room
 import kotlinx.android.synthetic.main.activity_main.*
@@ -11,21 +12,41 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONException
+import org.json.JSONObject
+import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var db: AppDatabase
     lateinit var dao: IceCreamDao
+    lateinit var http: OkHttp   //OkHttpクラスのインスタンス化を遅らせる
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        http = OkHttp()
+
+        weatherButton.setOnClickListener {
+            progressBar.visibility = View.VISIBLE
+            GlobalScope.launch {
+                withContext(Dispatchers.IO) {
+                    http.httpGet("https://weather.tsukumijima.net/api/forecast/city/130010")
+                    // TODO: GETを実行後、responseBodyをDBに保存
+                    withContext(Dispatchers.Main) {
+                        resultText.text = http.responseBody.toString()
+                        progressBar.visibility = View.GONE
+                    }
+                }
+            }
+        }
+
         val datas = arrayListOf<IceCream>()
-        for (i in 0..100){
-            datas.add(IceCream(icon = "",title = "",text = "").apply {
-                when(i % 3){
+        for (i in 0..100) {
+            datas.add(IceCream(icon = "", title = "", text = "").apply {
+                when (i % 3) {
                     0 -> {
                         icon = "strawberry"
                         title = "ストロベリーアイス"
@@ -44,15 +65,13 @@ class MainActivity : AppCompatActivity() {
                 }
             })
         }
-        // Roomで作ったDBを初期化する
+
         db = Room.databaseBuilder(this, AppDatabase::class.java, "iceCream_database").build()
         dao = db.iceCreamDao()
-        // DB処理をDispatchersIOで実行する
+
         GlobalScope.launch {
             withContext(Dispatchers.IO) {
-                // delete
                 dao.deleteAll()
-                // insert
                 /** 遠藤コメント **/
 //                var test = mutableListOf<IceCream>()
 //                var test = datas.map{
@@ -65,12 +84,11 @@ class MainActivity : AppCompatActivity() {
 //                dao.inserAll()
                 /** 遠藤コメント  ここまで**/
                 dao.insert(datas)
-                // select
                 val iceList = dao.selectAll()
 
-                withContext(Dispatchers.Main){
-                    // アダプターをセット
-                    list_view.adapter = CustomAdapter(this@MainActivity, iceList as ArrayList<IceCream>)
+                withContext(Dispatchers.Main) {
+                    list_view.adapter =
+                        CustomAdapter(this@MainActivity, iceList as ArrayList<IceCream>)
                 }
             }
         }
@@ -79,10 +97,15 @@ class MainActivity : AppCompatActivity() {
             val iceCream = parent.getItemAtPosition(position) as IceCream
             val state = DataState(iceCream.icon, iceCream.title, iceCream.text)
 
-            Intent(this,SubActivity::class.java).apply {
+            Intent(this, SubActivity::class.java).apply {
                 this.putExtra("ICE_CREAM", state)
                 startActivity(this)
             }
         }
     }
 }
+
+//try {
+// } catch (e: Exception) {
+//   println(e.toString())
+// }

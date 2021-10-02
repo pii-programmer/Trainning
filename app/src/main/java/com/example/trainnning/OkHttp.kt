@@ -1,20 +1,37 @@
 package com.example.trainnning
 
 import okhttp3.*
+import org.json.JSONObject
 
-class OkHttp() {
+class OkHttp {
     lateinit var client: OkHttpClient
     lateinit var request: Request
+    lateinit var response: Response
+    lateinit var responseBody: ResponseBody
+    // FIXME
+    //  lateinit var responseJSONObject: JSONObject
 
-    fun httpGet() {
-        // clientの初期化
+    fun httpGet(url:String): ResponseBody {
         client = OkHttpClient()
-        // requestの初期化
-        request = Request.Builder().url("https://weather.tsukumijima.net/api/forecast/city/130010").build()
+        request = Request.Builder().url(url).get().build()
+        response = client.newCall(request).execute()
 
-        // requestの実行
-        val response = client.newCall(request).execute()
-        val body = response.body as Unit
-        return body
+        responseBody = response.body!!  // WARNING
+
+        return responseBody
     }
 }
+// FIXME
+//        val json = JSONObject(response.body as String)
+//        return json
+//        responseJSONObject = json.getJSONObject("forecasts").getJSONObject("date")
+
+//    companion object{
+//        val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
+//    }
+
+//                        try{
+//
+//                        }catch (e: JSONException){
+//                            e.printStackTrace()
+//                        }
