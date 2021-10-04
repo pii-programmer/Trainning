@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.room.Room
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.row_view.*
@@ -20,32 +21,30 @@ class MainActivity : AppCompatActivity() {
     lateinit var dao: WeatherDao
     lateinit var http: OkHttp
 
+    private val spinnerItems = arrayOf("東京","埼玉","千葉")
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        http = OkHttp()
+        val adapterToSpinner = ArrayAdapter(this,android.R.layout.simple_spinner_item, spinnerItems)
+        adapterToSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinner.adapter = adapterToSpinner
 
-        val datas = arrayListOf<Weather>()
-        for (i in 0..3) {
-            datas.add(Weather().apply {
-                city = "東京"
-                dateLabel = "2021.10.1"
-                telop = "晴れ"
-            })
-        }
         db = Room.databaseBuilder(this, AppDatabase::class.java, "weather_database").build()
         dao = db.WeatherDao()
+        http = OkHttp()
 
         weatherButton.setOnClickListener {
             progressBar.visibility = View.VISIBLE
+            val datas = arrayListOf<Weather>()
 
             GlobalScope.launch {
                 withContext(Dispatchers.IO) {
                     http.httpGet("https://weather.tsukumijima.net/api/forecast/city/130010")
                     dao.deleteAll()
-
-                    var test = datas.map{
+                    datas.map{
                         Weather(
                             city = it.city,
                             dateLabel = it.dateLabel,
@@ -53,12 +52,10 @@ class MainActivity : AppCompatActivity() {
                         )
                     } as MutableList<Weather>
                     dao.insertAll()
-
                     val weatherList = dao.selectAll()
 
                     withContext(Dispatchers.Main) {
-                        list_view.adapter =
-                            CustomAdapter(this@MainActivity, weatherList as ArrayList<Weather>)
+                        list_view.adapter = CustomAdapter(this@MainActivity, weatherList as ArrayList<Weather>)
                         progressBar.visibility = View.GONE
                     }
                 }
