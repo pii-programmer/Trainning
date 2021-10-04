@@ -10,23 +10,20 @@ class SubActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sub)
 
-        val ice = intent.getSerializableExtra("ICE_CREAM")
-        if (ice is DataState){
-            when (ice.icon){
-                "lemon" -> {
-                    iceIcon.setImageResource(R.drawable.ice_lemon)
-                    iceTitle.text = ice.title
-                    iceText.text = ice.text
+        val intentExtra = intent.getSerializableExtra("WEATHER_INTENT")
+        if (intentExtra is DataState){
+            when (intentExtra.city){
+                "東京" -> {
+                    cityTitle.text = intentExtra.city
+                    telopText.text = intentExtra.telop
                 }
-                "strawberry" -> {
-                    iceIcon.setImageResource(R.drawable.ice_strawberry)
-                    iceTitle.text = ice.title
-                    iceText.text = ice.text
+                "千葉" -> {
+                    cityTitle.text = intentExtra.city
+                    telopText.text = intentExtra.telop
                 }
-                "choco" -> {
-                    iceIcon.setImageResource(R.drawable.ice_choco)
-                    iceTitle.text = ice.title
-                    iceText.text = ice.text
+                "埼玉" -> {
+                    cityTitle.text = intentExtra.city
+                    telopText.text = intentExtra.telop
                 }
             }
         }

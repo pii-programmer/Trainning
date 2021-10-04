@@ -9,6 +9,5 @@ data class Weather(
     var id:Long? = null,
     var city:String? = "",
     var dateLabel:String? = "",
-    var telop:String? = "",
-    var image:String? = ""
+    var telop:String? = ""
 )

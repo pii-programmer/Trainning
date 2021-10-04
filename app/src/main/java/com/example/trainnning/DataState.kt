@@ -3,7 +3,7 @@ package com.example.trainnning
 import java.io.Serializable
 
 data class DataState (
-    val icon: String?,
-    val title: String?,
-    val text: String?
+    val city: String?,
+    val dateLabel: String?,
+    val telop: String?
 ): Serializable
