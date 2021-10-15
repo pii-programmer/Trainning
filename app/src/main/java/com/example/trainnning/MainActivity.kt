@@ -51,13 +51,15 @@ class MainActivity : AppCompatActivity() {
                     client = OkHttpClient()
                     val request = Request.Builder().url("https://weather.tsukumijima.net/api/forecast?city=130010").build()
 
-                    // fixme
                     client.newCall(request).enqueue(object : Callback {
                         override fun onResponse(call: Call, response: Response) {
                             val jsonResponse = JSONObject(response.body?.string())
                             val description = jsonResponse.getString("description")
                             val descriptionData = description.split(",")
-                            val headlineText = descriptionData[3]
+                            val headlineText2 = descriptionData[2]
+                            val headlineTextData = headlineText2.split(":")
+                            val headlineText = headlineTextData[1]
+                            // TODO: headlineTextをinsertする
                         }
                         override fun onFailure(call: Call, e: IOException) {
                             Log.e("Error", e.toString())

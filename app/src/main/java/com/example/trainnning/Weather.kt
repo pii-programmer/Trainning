@@ -9,7 +9,7 @@ data class Weather(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "weather_id")
     var id:Long? = null,
-    var description:String = "",
-    var forecasts:String = "",
-    var copyright:String = ""
+    var description:String?,
+    var forecasts:String? = "",
+    var copyright:String? = ""
 )
