@@ -21,12 +21,13 @@ class CustomAdapter(context: Context, list: ArrayList<Weather>) : ArrayAdapter<W
 
         //一行分のデータを取得
         data = getItem(position) as Weather
-        view?.findViewById<TextView>(R.id.title)?.apply { text = data.city }
-        view?.findViewById<TextView>(R.id.text)?.apply { text = data.dateLabel}
+        view?.findViewById<TextView>(R.id.text1)?.apply { text = data.description }
+        view?.findViewById<TextView>(R.id.text2)?.apply { text = data.forecasts}
+        view?.findViewById<TextView>(R.id.text3)?.apply { text = data.copyright }
         return view!!
     }
 }
-// データ型のDataクラス
+
 data class Data(
     var icon: String? = null,
     var title: String? = null,

@@ -7,3 +7,5 @@ import androidx.room.RoomDatabase
 abstract class AppDatabase : RoomDatabase() {
     abstract fun WeatherDao() : WeatherDao
 }
+// DBのクラスを変えた時は、versionを上げる
+// テーブルやカラムを増やす等のDB操作した時は、Migrationする

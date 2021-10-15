@@ -3,6 +3,7 @@ package com.example.trainnning
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -13,13 +14,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.*
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var db: AppDatabase
     lateinit var dao: WeatherDao
-    lateinit var http: OkHttp
+    lateinit var client: OkHttpClient
 
     private val spinnerItems = arrayOf("東京","埼玉","千葉")
 
@@ -34,30 +39,50 @@ class MainActivity : AppCompatActivity() {
 
         db = Room.databaseBuilder(this, AppDatabase::class.java, "weather_database").build()
         dao = db.WeatherDao()
-        http = OkHttp()
 
         weatherButton.setOnClickListener {
             progressBar.visibility = View.VISIBLE
-            val datas = arrayListOf<Weather>()
 
             GlobalScope.launch {
                 withContext(Dispatchers.IO) {
-                    http.httpGet("https://weather.tsukumijima.net/api/forecast/city/130010")
-                    dao.deleteAll()
-                    datas.map{
-                        Weather(
-                            city = it.city,
-                            dateLabel = it.dateLabel,
-                            telop = it.telop
-                        )
-                    } as MutableList<Weather>
-                    dao.insertAll()
-                    val weatherList = dao.selectAll()
 
-                    withContext(Dispatchers.Main) {
-                        list_view.adapter = CustomAdapter(this@MainActivity, weatherList as ArrayList<Weather>)
-                        progressBar.visibility = View.GONE
-                    }
+                    dao.deleteAll()
+
+                    client = OkHttpClient()
+                    val request = Request.Builder().url("https://weather.tsukumijima.net/api/forecast?city=130010").build()
+
+                    // fixme
+                    client.newCall(request).enqueue(object : Callback {
+                        override fun onResponse(call: Call, response: Response) {
+                            val jsonResponse = JSONObject(response.body?.string())
+                            val description = jsonResponse.getString("description")
+                            val descriptionData = description.split(",")
+                            val headlineText = descriptionData[3]
+                        }
+                        override fun onFailure(call: Call, e: IOException) {
+                            Log.e("Error", e.toString())
+                        }
+                    })
+
+//                    val datas = arrayListOf<Weather>()
+//                    datas.map{
+//                        Weather(
+//                            description = it.description,
+//                            forecasts = it.forecasts,
+//                            copyright = it.copyright
+//                        )
+//                    } as MutableList<Weather>
+
+// TODO: tableをネスト。親のtableで付与されてるidを、子tableで読み込みアソシエーションを組む。
+
+//                    dao.insert(datas)
+//
+//                    val weatherList = dao.selectAll()
+//
+//                    withContext(Dispatchers.Main) {
+//                        progressBar.visibility = View.GONE
+//                        list_view.adapter = CustomAdapter(this@MainActivity, weatherList as ArrayList<Weather>)
+//                    }
                 }
             }
         }
@@ -65,10 +90,10 @@ class MainActivity : AppCompatActivity() {
         // リストビューのクリックリスナー
         list_view.setOnItemClickListener { parent: AdapterView<*>, _, position, _ ->
             val weatherIntent = parent.getItemAtPosition(position) as Weather
-            val state = DataState(weatherIntent.city, weatherIntent.dateLabel, weatherIntent.telop)
+//            val state = DataState(weatherIntent.city, weatherIntent.dateLabel, weatherIntent.telop)
 
             Intent(this, SubActivity::class.java).apply {
-                this.putExtra("WEATHER_INTENT", state)
+//                this.putExtra("WEATHER_INTENT", state)
                 startActivity(this)
             }
         }
@@ -87,6 +112,6 @@ class MainActivity : AppCompatActivity() {
 //                dao.insertAll()
 /** 遠藤コメント  ここまで**/
 //try {
-// } catch (e: Exception) {
+// } catch (e: JSONException) {
 //   println(e.toString())
 // }
